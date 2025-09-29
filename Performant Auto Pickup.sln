@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Performant Auto Pickup", "Performant Auto Pickup.csproj", "{C6E53E4B-33B8-4661-AB00-25FC16BA745E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C6E53E4B-33B8-4661-AB00-25FC16BA745E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6E53E4B-33B8-4661-AB00-25FC16BA745E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6E53E4B-33B8-4661-AB00-25FC16BA745E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6E53E4B-33B8-4661-AB00-25FC16BA745E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E7AB669B-525C-4E90-87FE-7EFCBEC7AAEB}
+	EndGlobalSection
+EndGlobal
