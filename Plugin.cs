@@ -1,31 +1,53 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
+using HarmonyLib;
 using Mirror;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace DrakiaXYZ.PerformantAutoPickup
 {
-    [BepInPlugin("xyz.drakia.dinkum.autopickup", "DrakiaXYZ-PerformantAutoPickup", "1.0.0")]
+    [BepInPlugin("xyz.drakia.dinkum.autopickup", "DrakiaXYZ-PerformantAutoPickup", "1.0.1")]
     public class Plugin : BaseUnityPlugin
     {
         private ConfigEntry<float> PickupDistance;
-        private ConfigEntry<float> PickupInterval;
-        private float timer = 0f;
+        private ConfigEntry<bool> PocketFullNotification;
+        private ConfigEntry<KeyCode> ToggleKey;
 
-        private void Awake()
+        private float pickupInterval = 0.1f;
+        private float timer = 0f;
+        private bool pickupEnabled = true;
+
+        public void Start()
         {
-            PickupDistance = this.Config.Bind<float>("General", "Pickup Distance", 5f, "Range to auto pickup items");
-            PickupInterval = this.Config.Bind<float>("General", "Pickup Interval", 0.1f, 
-                new ConfigDescription(
-                    "How often to search for items", 
-                    new AcceptableValueRange<float>(0f, 1f)
-                ));
+            PickupDistance = Config.Bind<float>("General", "Pickup Distance", 5f, "Range to auto pickup items");
+            PocketFullNotification = Config.Bind<bool>("General", "Pocket Full Notification", true, "Enable or disable the pocket full notification when a pickup fails");
+            ToggleKey = Config.Bind<KeyCode>("General", "Toggle Key", KeyCode.P, "Key used to toggle auto pickup on/off");
+
+            var harmony = new Harmony("xyz.drakia.dinkum.autopickup");
+            harmony.PatchAll(Assembly.GetExecutingAssembly());
         }
 
-        private void Update()
+        public void Update()
         {
-            timer += Time.deltaTime;
+            if (NetworkMapSharer.Instance.localChar == null)
+            {
+                return;
+            }
+
+            // Allow toggling
+            if (ToggleKey.Value != KeyCode.None && !Inventory.Instance.isMenuOpen() && Input.GetKeyDown(ToggleKey.Value))
+            {
+                pickupEnabled = !pickupEnabled;
+
+                NotificationManager.manage.createChatNotification($"Auto Pickup " + (pickupEnabled ? "Enabled" : "Disabled"), false);
+            }
+            if (!pickupEnabled)
+            {
+                timer = 0f;
+                return;
+            }
 
             // Skip if gliding
             if (NetworkMapSharer.Instance.localChar.usingHangGlider)
@@ -41,8 +63,8 @@ namespace DrakiaXYZ.PerformantAutoPickup
                 return;
             }
 
-            // Don't run yet
-            if (timer < PickupInterval.Value)
+            timer += Time.deltaTime;
+            if (timer < pickupInterval)
             {
                 return;
             }
@@ -60,7 +82,10 @@ namespace DrakiaXYZ.PerformantAutoPickup
                     }
                     else
                     {
-                        NotificationManager.manage.turnOnPocketsFullNotification(true);
+                        if (PocketFullNotification.Value)
+                        {
+                            NotificationManager.manage.turnOnPocketsFullNotification(true);
+                        }
                     }
                 }
             }
@@ -77,9 +102,9 @@ namespace DrakiaXYZ.PerformantAutoPickup
                 for (int i = 0; i < items.Length; i++)
                 {
                     DroppedItem droppedItem = items[i].GetComponentInParent<DroppedItem>();
-                    if (droppedItem != null)
+                    if (droppedItem != null && !CmdDropItemPatch.LocalDroppedItems.Contains(droppedItem.myItemId))
                     {
-                        if (Vector3.Distance(position, items[i].transform.position) < distance && WorldManager.Instance.isPositionInSameFencedArea(position, items[i].transform.position))
+                        if (Vector3.Distance(position, items[i].transform.position) < distance)
                         {
                             droppedItems.Add(droppedItem);
                         }
